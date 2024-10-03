@@ -186,6 +186,25 @@ describe("update", function () {
     expect(found.rows.length).toEqual(1);
     expect(found.rows[0].password.startsWith("$2b$")).toEqual(true);
     
+    try {
+      await User.authenticate("u1", "password1");
+      fail();
+    } catch (err) {
+      expect(err instanceof UnauthorizedError).toBeTruthy();
+    }
+
+    try {
+      const res = await User.authenticate("u1", "new");
+      expect(res).toEqual({
+        username: "u1",
+        firstName: "U1F",
+        lastName: "U1L",
+        email: "u1@email.com",
+        isAdmin: false,
+      });
+    } catch (err) {
+      fail();
+    }
 
   });
 
