@@ -5,9 +5,11 @@ const { BCRYPT_WORK_FACTOR } = require("../config");
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
-  await db.query("DELETE FROM companies");
+  await db.query("DELETE FROM companies"); // will also delete jobs because of FK cascade
   // noinspection SqlWithoutWhere
   await db.query("DELETE FROM users");
+  // reset the auto id sequence, next job id will be 1
+  await db.query("ALTER SEQUENCE jobs_id_seq RESTART WITH 1");
 
   await db.query(`
     INSERT INTO companies(handle, name, num_employees, description, logo_url)
@@ -28,6 +30,20 @@ async function commonBeforeAll() {
         await bcrypt.hash("password1", BCRYPT_WORK_FACTOR),
         await bcrypt.hash("password2", BCRYPT_WORK_FACTOR),
       ]);
+
+  await db.query(`
+    INSERT INTO jobs(title, salary, equity, company_handle)
+    VALUES ('j1', 100, '0.1', 'c1'),
+           ('j2', 200, '0.2', 'c2'),
+           ('j3', 300, '0.3', 'c3')`);
+
+  const res = await db.query(`
+    SELECT id, title, salary, equity, company_handle AS "companyHandle"
+    FROM jobs
+  `);
+  const jobs = res.rows;
+  console.log("#".repeat(100));
+  console.log("jobs", jobs);
 }
 
 async function commonBeforeEach() {
