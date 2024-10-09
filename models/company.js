@@ -66,10 +66,15 @@ class Company {
    * 
    * @example find({ minEmployees: 10, maxEmployees: 100, name: 'apple' })
    * 
-   * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
-   * Throws BadRequestError if it contains invalid parameters
+   * @param {Object} queryParams
+   * @returns [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * @throws BadRequestError if it contains invalid parameters
    */
   static async find(queryParams) {
+    if (Object.keys(queryParams).length === 0) {
+      return await Company.findAll();
+    }
+
     // Check if the query parameters are valid
     if (queryParams.minEmployees > queryParams.maxEmployees) {
       throw new BadRequestError("Min employees cannot be greater than max employees");

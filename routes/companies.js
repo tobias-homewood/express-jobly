@@ -52,8 +52,7 @@ router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) 
 
 router.get("/", async function (req, res, next) {
   try {
-    const queryParams = req.query;
-    const companies = queryParams ? await Company.find(queryParams) : await Company.findAll();
+    const companies = await Company.find(req.query);
     return res.json({ companies });
   } catch (err) {
     return next(err);
