@@ -39,6 +39,7 @@ class Job {
             ],
         );
         const job = result.rows[0];
+        job.equity = Number(job.equity);
 
         return job;
     }
@@ -56,8 +57,12 @@ class Job {
                     company_handle AS "companyHandle"
             FROM jobs
             ORDER BY title`);
+        jobsRes.rows.forEach(job => job.equity = Number(job.equity));
         return jobsRes.rows;
     }
+
+    // TODO
+    static async find() {}
 
     /** Given a job id, return data about job.
      * 
@@ -79,7 +84,7 @@ class Job {
         const job = jobRes.rows[0];
 
         if (!job) throw new NotFoundError(`No job: ${id}`);
-
+        job.equity = Number(job.equity);
         return job;
     }
 
@@ -120,7 +125,7 @@ class Job {
         const job = result.rows[0];
 
         if (!job) throw new NotFoundError(`No job: ${id}`);
-
+        job.equity = Number(job.equity);
         return job;
     }
 

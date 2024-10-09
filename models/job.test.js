@@ -19,7 +19,7 @@ describe("create", function () {
     const newJob = {
         title: "new",
         salary: 100,
-        equity: "0.1",
+        equity: 0.1,
         companyHandle: "c1",
     };
 
@@ -32,7 +32,7 @@ describe("create", function () {
             FROM jobs
             WHERE title = 'new'
             AND company_handle = 'c1'`);
-        expect(result.rows).toEqual([newJob]);
+        expect(result.rows).toEqual([{...newJob, equity: "0.1"}]);
     });
 
     test("bad request with dupe", async function () {
@@ -54,21 +54,21 @@ describe("read", function () {
                 id: 1,
                 title: "j1",
                 salary: 100,
-                equity: "0.1",
+                equity: 0.1,
                 companyHandle: "c1",
             },
             {
                 id: 2,
                 title: "j2",
                 salary: 200,
-                equity: "0.2",
+                equity: 0.2,
                 companyHandle: "c2",
             },
             {
                 id: 3,
                 title: "j3",
                 salary: 300,
-                equity: "0.3",
+                equity: 0.3,
                 companyHandle: "c3",
             },
         ]);
@@ -80,7 +80,7 @@ describe("read", function () {
             id: 1,
             title: "j1",
             salary: 100,
-            equity: "0.1",
+            equity: 0.1,
             companyHandle: "c1",
             id: 1,
         });
@@ -100,7 +100,7 @@ describe("update", function () {
     const updateData = {
         title: "new",
         salary: 500,
-        equity: "0.5",
+        equity: 0.5,
     };
 
     test("works", async function () {
@@ -118,6 +118,7 @@ describe("update", function () {
         expect(result.rows).toEqual([{
             ...updateData,
             company_handle: "c1",
+            equity: "0.5",
         }]);
     });
 
