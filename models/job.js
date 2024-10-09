@@ -61,8 +61,63 @@ class Job {
         return jobsRes.rows;
     }
 
-    // TODO
-    static async find() {}
+    /**
+     * Find all jobs that match the query parameters: title, minSalary, hasEquity
+     * 
+     * @example find({ title: 'engineer', minSalary: 100000, hasEquity: true })
+     * @param {Object} queryParams 
+     * @returns [{ id, title, salary, equity, companyHandle }, ...]
+     * @throws BadRequestError if any of the query parameters are invalid
+     */
+    static async find(queryParams) {
+        if (Object.keys(queryParams).length === 0) {
+            return await Job.findAll();
+        }
+        // The params are going to be validated by the jsonschema in the route
+
+        // Build the query
+        let query = `SELECT id,
+                            title,
+                            salary,
+                            equity,
+                            company_handle AS "companyHandle"
+                     FROM jobs`;
+
+        // We will store all the filters in the query
+        let whereClause = [];
+        // These will be the values in the query in the same order as the whereClause
+        let values = [];
+        let idx = 1;
+
+        // Loop through the query params and add the filters to the query
+        for (let key in queryParams) {
+            if (key === "title") {
+                values.push(`%${queryParams[key]}%`);
+                whereClause.push(`title ILIKE $${idx}`);
+                idx++;
+            } else if (key === "minSalary") {
+                values.push(queryParams[key]);
+                whereClause.push(`salary >= $${idx}`);
+                idx++;
+            } else if (key === "hasEquity" && queryParams[key] === "true") {
+                whereClause.push(`equity > 0`);
+            } else if (key === "hasEquity" && queryParams[key] === "false") {
+                whereClause.push(`equity = 0`);
+            } else {
+                throw new BadRequestError(`Invalid query param: ${key}`);
+            }
+        }
+
+        // If we have any filters, add the WHERE clause
+        if (whereClause.length > 0) {
+            query += " WHERE " + whereClause.join(" AND ");
+        }
+        query += " ORDER BY title";
+
+        const jobsRes = await db.query(query, values);
+        jobsRes.rows.forEach(job => job.equity = Number(job.equity));
+        return jobsRes.rows;
+    }
 
     /** Given a job id, return data about job.
      * 
