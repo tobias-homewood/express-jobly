@@ -10,6 +10,7 @@ const {
 } = require("../expressError");
 
 const { BCRYPT_WORK_FACTOR } = require("../config.js");
+const Job = require("./job");
 
 /** Related functions for users. */
 
@@ -206,6 +207,38 @@ class User {
     const user = result.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+  }
+
+  /** Apply to job given the job id
+   * 
+   * Returns { applied: jobId }
+   */
+  static async applyToJob(username, jobId) {
+    const preCheck = await db.query(
+      `SELECT id
+       FROM jobs
+       WHERE id = $1`,
+      [jobId]
+    );
+    if (!preCheck.rows[0]) throw new NotFoundError(`No job: ${jobId}`);
+
+    const dupe = await db.query(
+      `SELECT job_id
+       FROM applications
+       WHERE username = $1 AND job_id = $2`,
+      [username, jobId]
+    );
+
+    if (dupe.rows[0]) throw new BadRequestError(`Already applied to job: ${jobId}`);
+
+    const result = await db.query(
+      `INSERT INTO applications (username, job_id)
+       VALUES ($1, $2)
+       RETURNING job_id`,
+      [username, jobId]
+    );
+
+    return { applied: result.rows[0].job_id };
   }
 }
 

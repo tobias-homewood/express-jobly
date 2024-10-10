@@ -8,6 +8,7 @@ const express = require("express");
 const { ensureLoggedIn, ensureIsAdmin, ensureIsAdminOrUser } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
+const Job = require("../models/job");
 const { createToken } = require("../helpers/tokens");
 const userNewSchema = require("../schemas/userNew.json");
 const userUpdateSchema = require("../schemas/userUpdate.json");
@@ -63,7 +64,7 @@ router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
 
 /** GET /[username] => { user }
  *
- * Returns { username, firstName, lastName, isAdmin }
+ * Returns { username, firstName, lastName, isAdmin, jobs }
  *
  * Authorization required: login, is an admin or the user themselves of this username
  **/
@@ -71,6 +72,7 @@ router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
 router.get("/:username", ensureLoggedIn, ensureIsAdminOrUser, async function (req, res, next) {
   try {
     const user = await User.get(req.params.username);
+    user.jobs = await Job.getAppliedJobs(req.params.username); // returns an array of job ids
     return res.json({ user });
   } catch (err) {
     return next(err);
@@ -113,6 +115,25 @@ router.delete("/:username", ensureLoggedIn, ensureIsAdminOrUser, async function 
   try {
     await User.remove(req.params.username);
     return res.json({ deleted: req.params.username });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/** POST /[username]/jobs/[id]  =>  { applied: jobId }
+ * 
+ * Post a new job application for the user
+ * 
+ * Authorization required: login, is an admin or the user themselves of this username
+ * 
+ * Throws BadRequestError if the user has already applied to the job or the job does not exist
+ */
+
+router.post("/:username/jobs/:id", ensureLoggedIn, ensureIsAdminOrUser, async function (req, res, next) {
+  try {
+    const { username, id: jobId } = req.params; // example { username: 'john', id: 1 }
+    const result = await User.applyToJob(username, jobId);
+    return res.json(result);
   } catch (err) {
     return next(err);
   }

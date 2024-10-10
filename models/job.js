@@ -139,6 +139,21 @@ class Job {
         return jobsRes.rows;
     }
 
+    /** Get all the jobs a user has applied to
+     * 
+     * @param {String} username
+     * @returns [id, ...]
+     */
+    static async getAppliedJobs(username) {
+        const jobsRes = await db.query(
+            `SELECT j.id
+            FROM jobs AS j
+            JOIN applications AS a ON j.id = a.job_id
+            WHERE a.username = $1`,
+            [username]);
+        return jobsRes.rows.map(job => job.id);
+    }
+
     /** Given a job id, return data about job.
      * 
      * Returns { id, title, salary, equity, companyHandle }
