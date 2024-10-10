@@ -119,6 +119,26 @@ class Job {
         return jobsRes.rows;
     }
 
+    /** Given a company handle, return all jobs for that company.
+     * 
+     * @param {String} companyHandle
+     * @eturns [{ id, title, salary, equity, companyHandle }, ...]
+     */
+    static async findByCompany(companyHandle) {
+        const jobsRes = await db.query(
+            `SELECT id,
+                    title,
+                    salary,
+                    equity,
+                    company_handle AS "companyHandle"
+            FROM jobs
+            WHERE company_handle = $1
+            ORDER BY title`,
+            [companyHandle]);
+        jobsRes.rows.forEach(job => job.equity = Number(job.equity));
+        return jobsRes.rows;
+    }
+
     /** Given a job id, return data about job.
      * 
      * Returns { id, title, salary, equity, companyHandle }
