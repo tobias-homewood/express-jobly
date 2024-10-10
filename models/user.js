@@ -222,6 +222,14 @@ class User {
     );
     if (!preCheck.rows[0]) throw new NotFoundError(`No job: ${jobId}`);
 
+    const userCheck = await db.query(
+      `SELECT username
+       FROM users
+       WHERE username = $1`,
+      [username]
+    );
+    if (!userCheck.rows[0]) throw new NotFoundError(`No user: ${username}`);
+
     const dupe = await db.query(
       `SELECT job_id
        FROM applications

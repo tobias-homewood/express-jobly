@@ -62,7 +62,7 @@ describe("read", function () {
                 title: "j2",
                 salary: 200,
                 equity: 0.2,
-                companyHandle: "c2",
+                companyHandle: "c1",
             },
             {
                 id: 3,
